@@ -252,6 +252,9 @@
     }
     .banner strong { color: var(--green); }
     .share-panel p { margin: 0 0 8px; }
+    .share-panel ol { margin: 0 0 10px; padding-left: 22px; }
+    .share-panel li { margin: 0 0 4px; }
+    .share-panel a { color: #2c4a9a; }
     .share-panel input {
       width: 100%;
       max-width: 480px;
@@ -851,13 +854,20 @@
       const c = shareCfg();
       const repo = "https://github.com/" + c.owner + "/" + c.repo;
       panel.innerHTML =
-        "<p>Save this page. After you connect once, just open the same link. Cards stay in the private folder <a href=\"" + esc(repo) + "\" target=\"_blank\" rel=\"noopener\">" + esc(c.owner + "/" + c.repo) + "</a>. You cannot add cards. We use Teams, not Slack.</p>" +
-        "<p>Paste the token you made for that private folder only. If GitHub asks you to authorise stratagease, do that. Do not paste the token in Teams.</p>" +
-        '<input id="token-input" type="password" autocomplete="off" placeholder="ghp_… or github_pat_…" value="' + esc(token()) + '">' +
+        "<p>First time: make a GitHub token, paste it, Connect. After that, just open this page.</p>" +
+        "<ol>" +
+          "<li>Open <a href=\"https://github.com/settings/personal-access-tokens/new\" target=\"_blank\" rel=\"noopener\">this GitHub page</a> (sign in if it asks).</li>" +
+          "<li>Token name: <strong>Plans</strong></li>" +
+          "<li>Resource owner: <strong>stratagease</strong></li>" +
+          "<li>Repository access: only <strong>plans</strong> (the private one)</li>" +
+          "<li>Permissions → Contents → <strong>Read and write</strong></li>" +
+          "<li>Generate, copy, paste below. If GitHub asks to authorise stratagease, click Authorise.</li>" +
+        "</ol>" +
+        '<input id="token-input" type="password" autocomplete="off" placeholder="Paste the token here" value="' + esc(token()) + '">' +
         '<div class="share-row">' +
           '<button type="button" id="connect-btn">' + (connected() ? "Reconnect" : "Connect") + "</button>" +
           (connected() ? '<button type="button" id="disconnect-btn">Disconnect this browser</button>' : "") +
-          "<span>" + (connected() ? "Connected. Ticks save for everyone." : "Not connected. Ticks stay on this device.") + "</span>" +
+          "<span>" + (connected() ? "Connected. Ticks save for everyone." : "Not connected yet.") + "</span>" +
         "</div>";
       document.getElementById("connect-btn").onclick = function () {
         const v = (document.getElementById("token-input").value || "").trim();
