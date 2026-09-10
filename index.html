@@ -1139,7 +1139,45 @@
       };
     }
 
+    function noteDrafts() {
+      const o = {};
+      document.querySelectorAll("[data-note-text]").forEach(function (ta) {
+        o[ta.getAttribute("data-note-text")] = ta.value;
+      });
+      const el = document.activeElement;
+      const focus = el && el.getAttribute ? el.getAttribute("data-note-text") : "";
+      const start = el && typeof el.selectionStart === "number" ? el.selectionStart : null;
+      return { o: o, focus: focus, start: start };
+    }
+
+    function restoreNoteDrafts(snap) {
+      if (!snap || !snap.o) return;
+      Object.keys(snap.o).forEach(function (id) {
+        const ta = document.querySelector('[data-note-text="' + id + '"]');
+        if (ta) ta.value = snap.o[id];
+      });
+      if (snap.focus) {
+        const ta = document.querySelector('[data-note-text="' + snap.focus + '"]');
+        if (ta) {
+          ta.focus();
+          const pos = snap.start == null ? ta.value.length : snap.start;
+          try { ta.selectionStart = ta.selectionEnd = pos; } catch (e) {}
+        }
+      }
+    }
+
+    function isTypingNote() {
+      const el = document.activeElement;
+      if (el && el.getAttribute && el.getAttribute("data-note-text") != null) return true;
+      const boxes = document.querySelectorAll("[data-note-text]");
+      for (let i = 0; i < boxes.length; i++) {
+        if (String(boxes[i].value || "")) return true;
+      }
+      return false;
+    }
+
     function draw() {
+      const snap = noteDrafts();
       const d = data();
       const nid = notesId();
       const hourId = (d.freshAirThisWeek && d.freshAirThisWeek.id) || "";
@@ -1149,6 +1187,7 @@
       drawShare();
       if (nid) drawNotes(d, item, hourId);
       else drawList(d, hourId);
+      restoreNoteDrafts(snap);
     }
 
     function drawNotes(d, item, hourId) {
@@ -1268,7 +1307,7 @@
 
     function maybeReload() {
       if (connected()) {
-        if (saving || dirty) return;
+        if (saving || dirty || isTypingNote()) return;
         loadFromGithub().then(function () { draw(); }).catch(function () {});
         return;
       }
