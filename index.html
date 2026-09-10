@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plans</title>
+  <style>
+    :root {
+      --navy: #19233E;
+      --green: #4aa34d;
+      --grey: #6E6E6E;
+      --line: #e5e5ea;
+      --bg: #F2F3F4;
+      --card: #fff;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--navy);
+      background: var(--bg);
+    }
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 20px 24px 16px;
+    }
+    header .row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    header h1 { margin: 0 0 4px; font-size: 20px; font-weight: 650; }
+    header p { margin: 0; color: #c5c9d4; font-size: 13px; }
+    header .hdr-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    header a.back, header button.team {
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 8px;
+      padding: 6px 10px;
+      white-space: nowrap;
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+    }
+    @media (max-width: 640px) {
+      header .row { flex-direction: column; }
+      header .hdr-actions { align-self: flex-start; }
+    }
+    .wrap { max-width: 920px; margin: 0  auto; padding: 16px 20px 48px; }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 8px;
+    }
+    .filters.people { margin-top: 0; margin-bottom: 16px; }
+    .filters button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--grey);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .filters button.on {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+    .filters.people button.on {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .card.done { opacity: 0.55; }
+    .top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+    .title { font-weight: 650; font-size: 16px; }
+    .meta { font-size: 12px; color: var(--grey); margin-top: 2px; }
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef0f3;
+      color: var(--grey);
+      flex-shrink: 0;
+    }
+    .pill.now { background: #e7f6e8; color: #2d7a32; }
+    .pill.next { background: #e8eefc; color: #2c4a9a; }
+    .pill.waiting { background: #f4efe6; color: #8a6a2f; }
+    .progress {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 10px 0 6px;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--grey);
+    }
+    .progress strong { color: var(--green); font-size: 14px; }
+    .bar {
+      height: 8px;
+      background: #eef0f3;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar > span {
+      display: block;
+      height: 100%;
+      background: var(--green);
+      border-radius: 999px;
+    }
+    .steps { margin: 10px 0 0; display: flex; flex-direction: column; gap: 6px; }
+    .step-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      flex: 1;
+      min-width: 180px;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: #fafafa;
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      color: var(--navy);
+      font: inherit;
+    }
+    .step.on {
+      background: #e7f6e8;
+      border-color: #cfe9d1;
+    }
+    .step.mine { box-shadow: inset 3px 0 0 var(--green); }
+    .box {
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+      border: 2px solid #b3b3b8;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background: #fff;
+    }
+    .step.on .box {
+      background: var(--green);
+      border-color: var(--green);
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='white' d='M6.2 11.2 3.4 8.4l1.2-1.2 1.6 1.6 4.2-4.2 1.2 1.2z'/></svg>");
+      background-size: 14px 14px;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .step span { flex: 1; }
+    .step.on span { text-decoration: line-through; color: #2d7a32; }
+    .who-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .who-chips.card-who { margin-top: 8px; }
+    .who-chips.step-who { align-self: center; }
+    .who-chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--grey);
+    }
+    .who-chip.on {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+    .next { margin: 8px 0 0; color: var(--navy); }
+    .who { margin: 6px 0 0; font-size: 13px; color: var(--grey); }
+    .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions button, .actions a {
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--navy);
+      border-radius: 8px;
+      padding: 4px 10px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .notes-body { margin-top: 16px; }
+    .notes-body h1 { font-size: 18px; margin: 0 0 12px; }
+    .notes-body h2 { font-size: 16px; margin: 18px 0 8px; }
+    .notes-body h3 { font-size: 14px; margin: 14px 0 6px; }
+    .notes-body p { margin: 0 0 12px; }
+    .notes-body ul, .notes-body ol { margin: 0 0 12px; padding-left: 20px; }
+    .notes-body li { margin: 0 0 4px; }
+    .notes-body hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+    .notes-body a { color: #2c4a9a; }
+    .notes-body code {
+      font-size: 13px;
+      background: #eef0f3;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    .notes-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 0 14px;
+      font-size: 13px;
+    }
+    .notes-body th, .notes-body td {
+      border: 1px solid var(--line);
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .notes-body th { background: #f6f7f8; }
+    .path {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--grey);
+      overflow-wrap: anywhere;
+    }
+    .empty { color: var(--grey); padding: 24px 4px; }
+    .banner, .share-panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin: 0 0 12px;
+      font-size: 14px;
+    }
+    .banner strong { color: var(--green); }
+    .share-panel p { margin: 0 0 8px; }
+    .share-panel input {
+      width: 100%;
+      max-width: 480px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+    }
+    .share-panel .share-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .share-panel button {
+      font-size: 13px;
+      border: 1px solid var(--navy);
+      background: var(--navy);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .save-msg { font-size: 12px; color: var(--grey); margin: 0 0 12px; }
+    .save-msg.err { color: #a33; }
+    .save-msg.ok { color: var(--green); }
+    .card.hour {
+      border-color: var(--green);
+      box-shadow: 0 0 0 1px var(--green);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="row">
+      <div>
+        <h1 id="heading">Plans</h1>
+        <p id="sub">Executive list — Straly first, then Saivor, then the rest.</p>
+      </div>
+      <div class="hdr-actions">
+        <button type="button" class="team" id="team-btn">Team</button>
+        <a class="back" id="back" href="#" hidden>Back to Plans</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <div class="banner" id="banner"></div>
+    <div class="share-panel" id="share-panel" hidden></div>
+    <p class="save-msg" id="save-msg" hidden></p>
+    <div class="filters" id="filters"></div>
+    <div class="filters people" id="people"></div>
+    <div id="list"></div>
+  </div>
+  <script src="plans.js"></script>
+  <script src="notes-data.js"></script>
+  <script>
+    const KEY = "plans-done-v1";
+    const STEP_KEY = "plans-steps-v1";
+    const STATUS_KEY = "plans-status-v1";
+    const ASSIGN_KEY = "plans-assign-v1";
+    const TOKEN_KEY = "plans-github-token";
+    const ME_KEY = "plans-me";
+    const doneMap = JSON.parse(localStorage.getItem(KEY) || "{}");
+    const stepMap = JSON.parse(localStorage.getItem(STEP_KEY) || "{}");
+    const statusMap = JSON.parse(localStorage.getItem(STATUS_KEY) || "{}");
+    const assignMap = JSON.parse(localStorage.getItem(ASSIGN_KEY) || "{}");
+    let filter = "now";
+    let person = localStorage.getItem(ME_KEY) || "";
+    let shareOpen = false;
+    let plansSha = "";
+    let notesSha = "";
+    let saving = false;
+    let loadedAt = Date.now();
+    const HALF_HOUR = 30 * 60 * 1000;
+
+    const filters = [
+      ["now", "Now"],
+      ["next", "Next"],
+      ["waiting", "Waiting"],
+      ["done", "Done"],
+      ["all", "All"],
+    ];
+    const filtersEl = document.getElementById("filters");
+    filters.forEach(([id, label]) => {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.dataset.id = id;
+      b.onclick = () => { filter = id; history.replaceState(null, "", hashNow()); draw(); };
+      filtersEl.appendChild(b);
+    });
+
+    function data() {
+      return window.PLANS || { items: [], updated: "", people: ["Raewyn", "Amit", "Aryan"] };
+    }
+
+    function peopleList() {
+      const p = data().people;
+      if (p && p.length) return p;
+      return ["Raewyn", "Amit", "Aryan"];
+    }
+
+    function shareCfg() {
+      return data().share || {
+        owner: "stratagease",
+        repo: "plans",
+        branch: "main",
+        file: "plans.js",
+        notes: "notes-data.js",
+      };
+    }
+
+    function token() {
+      return localStorage.getItem(TOKEN_KEY) || "";
+    }
+
+    function connected() {
+      return !!token();
+    }
+
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function notesId() {
+      const h = location.hash || "";
+      if (h.indexOf("#notes/") !== 0) return "";
+      return decodeURIComponent(h.slice(7).split("?")[0]);
+    }
+
+    function hashNow() {
+      const nid = notesId();
+      return nid ? "#notes/" + encodeURIComponent(nid) : "#";
+    }
+
+    function fileStatus(item) {
+      if (item.status === "now" || item.status === "next" || item.status === "done") return item.status;
+      return "waiting";
+    }
+
+    function effectiveStatus(item) {
+      if (connected()) return fileStatus(item);
+      if (doneMap[item.id]) return "done";
+      if (statusMap[item.id]) return statusMap[item.id];
+      return fileStatus(item);
+    }
+
+    function saveLocal() {
+      localStorage.setItem(KEY, JSON.stringify(doneMap));
+      localStorage.setItem(STATUS_KEY, JSON.stringify(statusMap));
+      localStorage.setItem(STEP_KEY, JSON.stringify(stepMap));
+      localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignMap));
+    }
+
+    function isStepDone(item, step) {
+      if (connected()) return !!step.done;
+      if (step.done) return true;
+      return !!(stepMap[item.id] && stepMap[item.id][step.id]);
+    }
+
+    function itemAssignee(item) {
+      if (item.assignee) return item.assignee;
+      if (connected()) return "";
+      return assignMap[item.id] || "";
+    }
+
+    function stepWho(item, step) {
+      if (step.who) return step.who;
+      if (connected()) return "";
+      return assignMap[item.id + ":" + step.id] || "";
+    }
+
+    function namesOn(item) {
+      const all = peopleList();
+      if (!item || !item.who) return all;
+      const raw = String(item.who).split(/[,/&]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+      const out = [];
+      raw.forEach(function (s) {
+        const found = all.find(function (p) {
+          return s.toLowerCase() === p.toLowerCase() || s.toLowerCase().indexOf(p.toLowerCase()) === 0;
+        });
+        const name = found || s;
+        if (out.indexOf(name) === -1) out.push(name);
+      });
+      return out.length ? out : all;
+    }
+
+    function itemForPerson(item, who) {
+      if (!who) return true;
+      if (itemAssignee(item) === who) return true;
+      const steps = item.steps || [];
+      if (steps.some(function (s) { return stepWho(item, s) === who; })) return true;
+      const anyStepWho = steps.some(function (s) { return stepWho(item, s); });
+      if (!itemAssignee(item) && !anyStepWho && namesOn(item).indexOf(who) !== -1) return true;
+      return false;
+    }
+
+    function progress(item) {
+      const steps = item.steps || [];
+      if (!steps.length) return null;
+      const n = steps.filter(function (s) { return isStepDone(item, s); }).length;
+      return { n: n, of: steps.length, pct: Math.round((n / steps.length) * 100) };
+    }
+
+    function notesName(item) {
+      if (!item.doc) return "";
+      const name = String(item.doc).split("/").pop();
+      if (!name || name.indexOf(".md") === -1) return "";
+      return name;
+    }
+
+    function notesText(item) {
+      const name = notesName(item);
+      if (!name) return "";
+      const pack = window.PLAN_NOTES || {};
+      return pack[name] || "";
+    }
+
+    function inlineMd(s) {
+      let out = esc(s);
+      out = out.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, function (_, label, href) {
+        return '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + label + "</a>";
+      });
+      out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      out = out.replace(/`([^`]+)`/g, "<code>$1</code>");
+      return out;
+    }
+
+    function mdToHtml(src) {
+      const lines = String(src).replace(/\r\n/g, "\n").split("\n");
+      let html = "";
+      let i = 0;
+      let list = "";
+      function closeList() {
+        if (list) { html += list === "ul" ? "</ul>" : "</ol>"; list = ""; }
+      }
+      function isTableRow(line) {
+        return line.indexOf("|") !== -1 && line.trim().charAt(0) === "|";
+      }
+      while (i < lines.length) {
+        const raw = lines[i];
+        const line = raw.trimEnd();
+        const t = line.trim();
+        if (!t) { closeList(); html += ""; i++; continue; }
+        if (t === "---") { closeList(); html += "<hr>"; i++; continue; }
+        if (t.indexOf("### ") === 0) { closeList(); html += "<h3>" + inlineMd(t.slice(4)) + "</h3>"; i++; continue; }
+        if (t.indexOf("## ") === 0) { closeList(); html += "<h2>" + inlineMd(t.slice(3)) + "</h2>"; i++; continue; }
+        if (t.indexOf("# ") === 0) { closeList(); html += "<h1>" + inlineMd(t.slice(2)) + "</h1>"; i++; continue; }
+        if (t.indexOf("- ") === 0 || t.indexOf("* ") === 0) {
+          if (list !== "ul") { closeList(); html += "<ul>"; list = "ul"; }
+          html += "<li>" + inlineMd(t.slice(2)) + "</li>";
+          i++; continue;
+        }
+        if (/^\d+\.\s/.test(t)) {
+          if (list !== "ol") { closeList(); html += "<ol>"; list = "ol"; }
+          html += "<li>" + inlineMd(t.replace(/^\d+\.\s/, "")) + "</li>";
+          i++; continue;
+        }
+        if (isTableRow(t)) {
+          closeList();
+          const rows = [];
+          while (i < lines.length && isTableRow(lines[i].trim())) {
+            const cells = lines[i].trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(function (c) { return c.trim(); });
+            if (!cells.every(function (c) { return /^:?-{3,}:?$/.test(c); })) rows.push(cells);
+            i++;
+          }
+          if (rows.length) {
+            html += "<table><thead><tr>" + rows[0].map(function (c) { return "<th>" + inlineMd(c) + "</th>"; }).join("") + "</tr></thead>";
+            if (rows.length > 1) {
+              html += "<tbody>" + rows.slice(1).map(function (r) {
+                return "<tr>" + r.map(function (c) { return "<td>" + inlineMd(c) + "</td>"; }).join("") + "</tr>";
+              }).join("") + "</tbody>";
+            }
+            html += "</table>";
+          }
+          continue;
+        }
+        closeList();
+        html += "<p>" + inlineMd(t) + "</p>";
+        i++;
+      }
+      closeList();
+      return html;
+    }
+
+    function progressHtml(item, label) {
+      const p = progress(item);
+      if (!p) return "";
+      const right = label || (p.pct + "% complete");
+      return '<div class="progress"><span>' + p.n + " of " + p.of + (label ? " steps" : "") + "</span><strong>" + right + "</strong></div>" +
+        '<div class="bar"><span style="width:' + p.pct + '%"></span></div>';
+    }
+
+    function chipsHtml(item, step) {
+      const names = namesOn(item);
+      const current = step ? stepWho(item, step) : itemAssignee(item);
+      const cls = step ? "who-chips step-who" : "who-chips card-who";
+      const sid = step ? esc(step.id) : "";
+      return '<div class="' + cls + '">' + names.map(function (n) {
+        const on = current === n ? " on" : "";
+        return '<button type="button" class="who-chip' + on + '" data-assign-item="' + esc(item.id) + '"' +
+          (sid ? ' data-assign-step="' + sid + '"' : "") +
+          ' data-assign-name="' + esc(n) + '">' + esc(n) + "</button>";
+      }).join("") + "</div>";
+    }
+
+    function stepsHtml(item) {
+      const steps = item.steps || [];
+      if (!steps.length) return "";
+      return '<div class="steps">' + steps.map(function (s) {
+        const on = isStepDone(item, s);
+        const mine = person && stepWho(item, s) === person;
+        return '<div class="step-row">' +
+          '<button type="button" class="step' + (on ? " on" : "") + (mine ? " mine" : "") + '" data-step-item="' + esc(item.id) + '" data-step="' + esc(s.id) + '">' +
+          '<i class="box"></i><span>' + esc(s.label) + "</span></button>" +
+          chipsHtml(item, s) +
+          "</div>";
+      }).join("") + "</div>";
+    }
+
+    function bindCardButtons(root) {
+      root.querySelectorAll("[data-toggle]").forEach(function (btn) {
+        btn.onclick = function () {
+          const id = btn.getAttribute("data-toggle");
+          toggleDone(id);
+          persist("Mark done");
+          draw();
+        };
+      });
+      root.querySelectorAll("[data-step]").forEach(function (btn) {
+        btn.onclick = function () {
+          const id = btn.getAttribute("data-step-item");
+          const sid = btn.getAttribute("data-step");
+          const it = data().items.find(function (i) { return i.id === id; });
+          const step = it && (it.steps || []).find(function (s) { return s.id === sid; });
+          if (!step) return;
+          if (connected()) {
+            step.done = !step.done;
+          } else {
+            if (step.done) return;
+            if (!stepMap[id]) stepMap[id] = {};
+            if (stepMap[id][sid]) delete stepMap[id][sid];
+            else stepMap[id][sid] = true;
+          }
+          persist("Tick step");
+          draw();
+        };
+      });
+      root.querySelectorAll("[data-assign-name]").forEach(function (btn) {
+        btn.onclick = function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = btn.getAttribute("data-assign-item");
+          const sid = btn.getAttribute("data-assign-step");
+          const name = btn.getAttribute("data-assign-name");
+          const it = data().items.find(function (i) { return i.id === id; });
+          if (!it) return;
+          if (sid) {
+            const step = (it.steps || []).find(function (s) { return s.id === sid; });
+            if (!step) return;
+            const next = stepWho(it, step) === name ? "" : name;
+            if (connected()) {
+              if (next) step.who = next;
+              else delete step.who;
+            } else {
+              const k = id + ":" + sid;
+              if (next) assignMap[k] = next;
+              else delete assignMap[k];
+            }
+          } else {
+            const next = itemAssignee(it) === name ? "" : name;
+            if (connected()) {
+              if (next) it.assignee = next;
+              else delete it.assignee;
+            } else {
+              if (next) assignMap[id] = next;
+              else delete assignMap[id];
+            }
+          }
+          persist("Assign");
+          draw();
+        };
+      });
+      root.querySelectorAll("[data-copy]").forEach(function (btn) {
+        btn.onclick = function () {
+          const id = btn.getAttribute("data-copy");
+          const item = data().items.find(function (i) { return i.id === id; });
+          if (!item || !item.cwd) return;
+          const cmd = "cd '" + String(item.cwd).replace(/'/g, "'\\''") + "' && grok";
+          copyText(cmd, btn);
+        };
+      });
+    }
+
+    function toggleDone(id) {
+      const items = data().items;
+      const item = items.find(function (i) { return i.id === id; });
+      if (!item) return;
+      const wasNow = effectiveStatus(item) === "now";
+      if (connected()) {
+        if (item.status === "done") {
+          item.status = "now";
+        } else {
+          item.status = "done";
+          if (wasNow) promoteNext(items, person);
+        }
+        return;
+      }
+      if (doneMap[id] || effectiveStatus(item) === "done") {
+        delete doneMap[id];
+        delete statusMap[id];
+        saveLocal();
+        return;
+      }
+      doneMap[id] = true;
+      statusMap[id] = "done";
+      if (wasNow) {
+        const nextItem = items.find(function (i) {
+          return effectiveStatus(i) === "next" && itemForPerson(i, person);
+        }) || items.find(function (i) { return effectiveStatus(i) === "next"; });
+        if (nextItem) {
+          statusMap[nextItem.id] = "now";
+          const waitingItem = items.find(function (i) {
+            return effectiveStatus(i) === "waiting" && itemForPerson(i, person);
+          }) || items.find(function (i) { return effectiveStatus(i) === "waiting"; });
+          if (waitingItem) statusMap[waitingItem.id] = "next";
+        }
+      }
+      saveLocal();
+    }
+
+    function promoteNext(items, who) {
+      const nextItem = items.find(function (i) {
+        return i.status === "next" && itemForPerson(i, who);
+      }) || items.find(function (i) { return i.status === "next"; });
+      if (!nextItem) return;
+      nextItem.status = "now";
+      const waitingItem = items.find(function (i) {
+        return (i.status === "waiting" || i.status === "parked") && itemForPerson(i, who);
+      }) || items.find(function (i) { return i.status === "waiting" || i.status === "parked"; });
+      if (waitingItem && waitingItem.status !== "now") waitingItem.status = "next";
+    }
+
+    function say(msg, kind) {
+      const el = document.getElementById("save-msg");
+      if (!msg) { el.hidden = true; el.textContent = ""; return; }
+      el.hidden = false;
+      el.className = "save-msg" + (kind ? " " + kind : "");
+      el.textContent = msg;
+    }
+
+    function serializePlans() {
+      const d = data();
+      d.updated = today();
+      return "/* Source of truth for the Plans board. Grok updates this when we agree a plan. */\nwindow.PLANS = " +
+        JSON.stringify(d, null, 2) + ";\n";
+    }
+
+    function today() {
+      const t = new Date();
+      const y = t.getFullYear();
+      const m = String(t.getMonth() + 1).padStart(2, "0");
+      const day = String(t.getDate()).padStart(2, "0");
+      return y + "-" + m + "-" + day;
+    }
+
+    function parsePlansFile(text) {
+      const m = String(text).match(/window\.PLANS\s*=\s*(\{[\s\S]*\});?\s*$/);
+      if (!m) throw new Error("plans.js is not in the expected shape");
+      try { return JSON.parse(m[1]); }
+      catch (e) { return Function("return (" + m[1] + ")")(); }
+    }
+
+    function parseNotesFile(text) {
+      const m = String(text).match(/window\.PLAN_NOTES\s*=\s*(\{[\s\S]*\});?\s*$/);
+      if (!m) return {};
+      try { return JSON.parse(m[1]); }
+      catch (e) { return Function("return (" + m[1] + ")")(); }
+    }
+
+    function b64decode(s) {
+      const bin = atob(String(s).replace(/\n/g, ""));
+      const bytes = Uint8Array.from(bin, function (c) { return c.charCodeAt(0); });
+      return new TextDecoder("utf-8").decode(bytes);
+    }
+
+    function b64encode(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = "";
+      bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+      return btoa(bin);
+    }
+
+    function ghHeaders() {
+      return {
+        Accept: "application/vnd.github+json",
+        Authorization: "Bearer " + token(),
+        "X-GitHub-Api-Version": "2022-11-28",
+      };
+    }
+
+    function ghUrl(path) {
+      const c = shareCfg();
+      return "https://api.github.com/repos/" + c.owner + "/" + c.repo + "/contents/" + path + "?ref=" + encodeURIComponent(c.branch);
+    }
+
+    async function githubGet(path) {
+      const res = await fetch(ghUrl(path), { headers: ghHeaders() });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error("GitHub " + res.status + " reading " + path + (t ? ": " + t.slice(0, 180) : ""));
+      }
+      return res.json();
+    }
+
+    async function loadFromGithub() {
+      if (!connected()) return;
+      const c = shareCfg();
+      const file = await githubGet(c.file);
+      plansSha = file.sha;
+      window.PLANS = parsePlansFile(b64decode(file.content));
+      try {
+        const notes = await githubGet(c.notes || "notes-data.js");
+        notesSha = notes.sha;
+        window.PLAN_NOTES = parseNotesFile(b64decode(notes.content));
+      } catch (e) { /* notes optional */ }
+      loadedAt = Date.now();
+    }
+
+    async function saveToGithub(reason) {
+      const c = shareCfg();
+      const body = serializePlans();
+      const res = await fetch("https://api.github.com/repos/" + c.owner + "/" + c.repo + "/contents/" + c.file, {
+        method: "PUT",
+        headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+        body: JSON.stringify({
+          message: (person || "Plans") + ": " + (reason || "update"),
+          content: b64encode(body),
+          sha: plansSha,
+          branch: c.branch,
+        }),
+      });
+      if (res.status === 409) {
+        await loadFromGithub();
+        throw new Error("Someone else just saved. The board reloaded — tap again.");
+      }
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error("GitHub " + res.status + " saving" + (t ? ": " + t.slice(0, 180) : ""));
+      }
+      const json = await res.json();
+      plansSha = json.content && json.content.sha ? json.content.sha : plansSha;
+    }
+
+    function persist(reason) {
+      if (!connected()) {
+        saveLocal();
+        return;
+      }
+      if (saving) return;
+      saving = true;
+      say("Saving…");
+      saveToGithub(reason).then(function () {
+        say("Saved for the team.", "ok");
+      }).catch(function (err) {
+        say(String(err.message || err), "err");
+      }).then(function () {
+        saving = false;
+      });
+    }
+
+    function drawPeople() {
+      const el = document.getElementById("people");
+      el.innerHTML = "";
+      peopleList().forEach(function (name) {
+        const b = document.createElement("button");
+        b.textContent = name;
+        b.classList.toggle("on", person === name);
+        b.onclick = function () {
+          person = person === name ? "" : name;
+          if (person) localStorage.setItem(ME_KEY, person);
+          else localStorage.removeItem(ME_KEY);
+          draw();
+        };
+        el.appendChild(b);
+      });
+    }
+
+    function drawShare() {
+      const panel = document.getElementById("share-panel");
+      if (!shareOpen) { panel.hidden = true; return; }
+      panel.hidden = false;
+      const c = shareCfg();
+      const repo = "https://github.com/" + c.owner + "/" + c.repo;
+      panel.innerHTML =
+        "<p><strong>Amit and Aryan already have this repo</strong> (stratagease org). They cannot add cards. They can tick steps, click a name to assign, Mark done, and Open notes.</p>" +
+        "<p>Repo: <a href=\"" + esc(repo) + "\" target=\"_blank\" rel=\"noopener\">" + esc(c.owner + "/" + c.repo) + "</a>. Paste a GitHub token with access to that repo (Contents: Read and write). It stays in this browser only.</p>" +
+        '<input id="token-input" type="password" autocomplete="off" placeholder="ghp_… or github_pat_…" value="' + esc(token()) + '">' +
+        '<div class="share-row">' +
+          '<button type="button" id="connect-btn">' + (connected() ? "Reconnect" : "Connect") + "</button>" +
+          (connected() ? '<button type="button" id="disconnect-btn">Disconnect this browser</button>' : "") +
+          "<span>" + (connected() ? "Connected. Ticks save for everyone." : "Not connected. Ticks stay on this device.") + "</span>" +
+        "</div>";
+      document.getElementById("connect-btn").onclick = function () {
+        const v = (document.getElementById("token-input").value || "").trim();
+        if (!v) { say("Paste a token first.", "err"); return; }
+        localStorage.setItem(TOKEN_KEY, v);
+        say("Loading the team board…");
+        loadFromGithub().then(function () {
+          say("Connected. This is the shared board.", "ok");
+          draw();
+        }).catch(function (err) {
+          say(String(err.message || err), "err");
+          draw();
+        });
+      };
+      const off = document.getElementById("disconnect-btn");
+      if (off) off.onclick = function () {
+        localStorage.removeItem(TOKEN_KEY);
+        plansSha = "";
+        say("This browser is local-only again.");
+        draw();
+      };
+    }
+
+    function draw() {
+      const d = data();
+      const nid = notesId();
+      const hourId = (d.freshAirThisWeek && d.freshAirThisWeek.id) || "";
+      const item = nid ? d.items.find(function (i) { return i.id === nid; }) : null;
+      drawPeople();
+      drawShare();
+      if (nid) drawNotes(d, item, hourId);
+      else drawList(d, hourId);
+    }
+
+    function drawNotes(d, item, hourId) {
+      document.getElementById("heading").textContent = item ? item.title : "Notes";
+      document.getElementById("sub").textContent =
+        item ? ((item.project || "") + " · " + (item.when || "")) : "No notes for this card.";
+      document.getElementById("back").hidden = false;
+      document.getElementById("banner").hidden = true;
+      document.getElementById("filters").hidden = true;
+      document.getElementById("people").hidden = true;
+      const list = document.getElementById("list");
+      if (!item) {
+        list.innerHTML = '<p class="empty">That card is not on the board.</p>';
+        return;
+      }
+      const st = effectiveStatus(item);
+      const hour = item.id === hourId;
+      const text = notesText(item);
+      const body = text
+        ? mdToHtml(text)
+        : "<p>" + esc(item.next || "No product plan file on this card.") + "</p>";
+      list.innerHTML =
+        '<article class="card ' + (st === "done" ? "done " : "") + (hour ? "hour" : "") + '">' +
+          '<div class="top"><div class="title">' + esc(item.title) + '</div>' +
+          '<span class="pill ' + st + '">' + (hour ? "hour" : st) + "</span></div>" +
+          '<div class="meta">' + esc(item.project) + " · " + esc(item.when || "") + "</div>" +
+          progressHtml(item, progress(item) ? progress(item).pct + "%" : "") +
+          stepsHtml(item) +
+          chipsHtml(item) +
+          '<div class="notes-body" id="notes-md">' + body + "</div>" +
+        "</article>";
+      bindCardButtons(list);
+    }
+
+    function drawList(d, hourId) {
+      document.getElementById("heading").textContent = person ? ("Plans · " + person) : "Plans";
+      document.getElementById("sub").textContent =
+        "Updated " + (d.updated || "") + " · Job first. One timed hour on something new is allowed.";
+      document.getElementById("back").hidden = true;
+      document.getElementById("banner").hidden = false;
+      document.getElementById("filters").hidden = false;
+      document.getElementById("people").hidden = false;
+      const hourItem = d.items.find(function (i) { return i.id === hourId; });
+      const banner = document.getElementById("banner");
+      const teamLine = connected()
+        ? " Shared with Amit and Aryan. Click a name on a card or step to assign it."
+        : " Click Team to share ticks with Amit and Aryan. Until then, ticks stay on this device.";
+      banner.innerHTML = hourItem
+        ? "This week's hour: <strong>" + esc(hourItem.project) + "</strong>. When the timer ends, write the next action on that card and stop. Everything else stays parked — not in your head." + teamLine
+        : ((d.freshAirThisWeek && d.freshAirThisWeek.note
+            ? esc(d.freshAirThisWeek.note)
+            : "Pick one side project for a one-hour break. Tell Grok which, so it is on this banner.") + teamLine);
+
+      [].forEach.call(filtersEl.children, function (b) {
+        b.classList.toggle("on", b.dataset.id === filter);
+      });
+      const list = document.getElementById("list");
+      const items = d.items.filter(function (it) {
+        const st = effectiveStatus(it);
+        if (filter !== "all" && st !== filter) return false;
+        return itemForPerson(it, person);
+      });
+      if (!items.length) {
+        list.innerHTML = '<p class="empty">' +
+          (person ? ("Nothing for " + esc(person) + " in this view.") : "Nothing in this view.") +
+          "</p>";
+        return;
+      }
+      list.innerHTML = items.map(function (item) {
+        const st = effectiveStatus(item);
+        const isDone = st === "done";
+        const hour = item.id === hourId;
+        const grok = item.cwd
+          ? '<button type="button" data-copy="' + esc(item.id) + '">Copy grok command</button>'
+          : "";
+        return '<article class="card' + (isDone ? " done" : "") + (hour ? " hour" : "") + '">' +
+          '<div class="top">' +
+            '<div class="title">' + esc(item.title) + (hour ? " · this week's hour" : "") + "</div>" +
+            '<span class="pill ' + st + '">' + (hour ? "hour" : st) + "</span>" +
+          "</div>" +
+          '<div class="meta">' + esc(item.project) + " · " + esc(item.when || "") + "</div>" +
+          progressHtml(item) +
+          stepsHtml(item) +
+          (item.next && !(item.steps && item.steps.length) ? '<p class="next">' + esc(item.next) + "</p>" : "") +
+          (item.next && item.steps && item.steps.length ? '<p class="who">' + esc(item.next) + "</p>" : "") +
+          chipsHtml(item) +
+          '<div class="actions">' +
+            '<button data-toggle="' + esc(item.id) + '">' + (isDone ? "Not done" : "Mark done") + "</button>" +
+            grok +
+            '<a href="#notes/' + encodeURIComponent(item.id) + '">Open notes</a>' +
+          "</div></article>";
+      }).join("");
+      bindCardButtons(list);
+    }
+
+    function copyText(text, btn) {
+      const label = "Copy grok command";
+      const ok = function () {
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = label; }, 1600);
+      };
+      const fallback = function () {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); ok(); }
+        catch (e) { btn.textContent = "Copy failed"; }
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && window.isSecureContext && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok).catch(fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    function maybeReload() {
+      if (connected()) {
+        if (saving) return;
+        loadFromGithub().then(function () { draw(); }).catch(function () {});
+        return;
+      }
+      if (Date.now() - loadedAt >= HALF_HOUR) location.reload();
+    }
+    setInterval(maybeReload, 20 * 1000);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") maybeReload();
+    });
+    window.addEventListener("hashchange", draw);
+    document.getElementById("back").onclick = function (e) {
+      e.preventDefault();
+      history.replaceState(null, "", "#");
+      draw();
+    };
+    document.getElementById("team-btn").onclick = function () {
+      shareOpen = !shareOpen;
+      draw();
+    };
+
+    if (!connected() && !(data().items && data().items.length)) shareOpen = true;
+
+    if (connected()) {
+      loadFromGithub().then(function () { draw(); }).catch(function (err) {
+        say(String(err.message || err), "err");
+        draw();
+      });
+    } else {
+      draw();
+    }
+  </script>
+</body>
+</html>
