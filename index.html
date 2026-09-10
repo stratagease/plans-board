@@ -1098,7 +1098,7 @@
     function drawList(d, hourId) {
       document.getElementById("heading").textContent = person ? ("Plans · " + person) : "Plans";
       document.getElementById("sub").textContent =
-        "Updated " + (d.updated || "") + " · Job first. One timed hour on something new is allowed.";
+        "Updated " + (d.updated || "") + " · Straly is always priority.";
       document.getElementById("back").hidden = true;
       document.getElementById("banner").hidden = false;
       document.getElementById("filters").hidden = false;
@@ -1106,10 +1106,8 @@
       const hourItem = d.items.find(function (i) { return i.id === hourId; });
       const banner = document.getElementById("banner");
       banner.innerHTML = hourItem
-        ? "This week's hour: <strong>" + esc(hourItem.project) + "</strong>. When the timer ends, write the next action on that card and stop. Everything else stays parked — not in your head."
-        : (d.freshAirThisWeek && d.freshAirThisWeek.note
-            ? esc(d.freshAirThisWeek.note)
-            : "Pick one side project for a one-hour break. Tell Grok which, so it is on this banner.");
+        ? "Straly is always priority. This week's hour (a break only): <strong>" + esc(hourItem.project) + "</strong>. When the timer ends, write the next action on that card and stop."
+        : esc((d.freshAirThisWeek && d.freshAirThisWeek.note) || "Straly is always priority.");
 
       [].forEach.call(filtersEl.children, function (b) {
         b.classList.toggle("on", b.dataset.id === filter);
