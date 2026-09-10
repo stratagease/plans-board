@@ -300,9 +300,11 @@
     .live.off { background: #f4efe6; border-color: #e6d9b8; color: #8a6a2f; }
     .live small { display: block; margin-top: 4px; font-size: 13px; opacity: 0.9; }
     .team-notes {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid var(--line);
+      margin: 12px 0 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fafafa;
     }
     .team-notes .tn-label {
       font-size: 12px;
@@ -643,7 +645,7 @@
           }).join("")
         : '<p class="tn-empty">Nothing here yet. Add a line the others and Grok can read.</p>';
       return '<div class="team-notes">' +
-        '<div class="tn-label">Team note</div>' +
+        '<div class="tn-label">Leave a note — everyone and Grok can read this</div>' +
         list +
         '<textarea data-note-text="' + esc(item.id) + '" rows="2" placeholder="e.g. Dev health is 200. Ready for the next step."></textarea>' +
         '<button type="button" class="tn-add" data-note-add="' + esc(item.id) + '">Add note</button>' +
@@ -1173,10 +1175,10 @@
           '<div class="top"><div class="title">' + esc(item.title) + '</div>' +
           '<span class="pill ' + st + '">' + (hour ? "hour" : st) + "</span></div>" +
           '<div class="meta">' + esc(item.project) + " · " + esc(item.when || "") + "</div>" +
+          teamNotesHtml(item) +
           progressHtml(item, progress(item) ? progress(item).pct + "%" : "") +
           stepsHtml(item) +
           chipsHtml(item) +
-          teamNotesHtml(item) +
           '<div class="notes-body" id="notes-md">' + body + "</div>" +
         "</article>";
       bindCardButtons(list);
@@ -1224,12 +1226,12 @@
             '<span class="pill ' + st + '">' + (hour ? "hour" : st) + "</span>" +
           "</div>" +
           '<div class="meta">' + esc(item.project) + " · " + esc(item.when || "") + "</div>" +
-          progressHtml(item) +
-          stepsHtml(item) +
           (item.next && !(item.steps && item.steps.length) ? '<p class="next">' + esc(item.next) + "</p>" : "") +
           (item.next && item.steps && item.steps.length ? '<p class="who">' + esc(item.next) + "</p>" : "") +
-          chipsHtml(item) +
           teamNotesHtml(item) +
+          progressHtml(item) +
+          stepsHtml(item) +
+          chipsHtml(item) +
           '<div class="actions">' +
             '<button data-toggle="' + esc(item.id) + '">' + (isDone ? "Not done" : "Mark done") + "</button>" +
             grok +
