@@ -851,8 +851,8 @@
       const c = shareCfg();
       const repo = "https://github.com/" + c.owner + "/" + c.repo;
       panel.innerHTML =
-        "<p><strong>Send this link:</strong> <a href=\"https://stratagease.github.io/plans-board/\" target=\"_blank\" rel=\"noopener\">stratagease.github.io/plans-board</a>. Amit and Aryan already have the private repo. They cannot add cards. They can tick steps, click a name to assign, Mark done, and Open notes.</p>" +
-        "<p>Repo: <a href=\"" + esc(repo) + "\" target=\"_blank\" rel=\"noopener\">" + esc(c.owner + "/" + c.repo) + "</a>. Paste a GitHub token with access to that repo (Contents: Read and write). If the org uses SSO, authorise the token for stratagease. It stays in this browser only.</p>" +
+        "<p>Save this page. After you connect once, just open the same link. Cards stay in the private folder <a href=\"" + esc(repo) + "\" target=\"_blank\" rel=\"noopener\">" + esc(c.owner + "/" + c.repo) + "</a>. You cannot add cards. We use Teams, not Slack.</p>" +
+        "<p>Paste the token you made for that private folder only. If GitHub asks you to authorise stratagease, do that. Do not paste the token in Teams.</p>" +
         '<input id="token-input" type="password" autocomplete="off" placeholder="ghp_… or github_pat_…" value="' + esc(token()) + '">' +
         '<div class="share-row">' +
           '<button type="button" id="connect-btn">' + (connected() ? "Reconnect" : "Connect") + "</button>" +

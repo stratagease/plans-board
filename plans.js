@@ -1,4 +1,4 @@
-/* Stub only. Real cards load from private stratagease/plans after you connect GitHub. */
+/* Empty on purpose. Real cards load from private stratagease/plans after Team connect. */
 window.PLANS = {
   updated: "",
   people: ["Raewyn", "Amit", "Aryan"],

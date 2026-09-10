@@ -1,11 +1,3 @@
-# Plans board (viewer)
+Save this link: https://stratagease.github.io/plans-board/
 
-This repo is only the web page. The cards live in the **private** repo [stratagease/plans](https://github.com/stratagease/plans).
-
-Open **https://stratagease.github.io/plans-board/**
-
-1. Click your name (Raewyn, Amit, or Aryan).
-2. Paste a GitHub token that can read and write `stratagease/plans`.
-3. Tick steps, click a name to assign, Mark done, Open notes.
-
-You cannot add cards here.
+Open it, click your name, Team, connect once. Cards load from the private stratagease/plans folder. You cannot add cards.
