@@ -772,6 +772,7 @@
             text: text.slice(0, 800),
           });
           if (it.teamNotes.length > 40) it.teamNotes = it.teamNotes.slice(-40);
+          if (box) box.value = "";
           dirty = true;
           persist("Team note");
           draw();
