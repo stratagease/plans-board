@@ -464,11 +464,20 @@
       return "waiting";
     }
 
+    function allStepsDone(item) {
+      const steps = item.steps || [];
+      if (!steps.length) return false;
+      return steps.every(function (s) { return isStepDone(item, s); });
+    }
+
     function effectiveStatus(item) {
-      if (connected()) return fileStatus(item);
-      if (doneMap[item.id]) return "done";
-      if (statusMap[item.id]) return statusMap[item.id];
-      return fileStatus(item);
+      let st;
+      if (connected()) st = fileStatus(item);
+      else if (doneMap[item.id]) st = "done";
+      else if (statusMap[item.id]) st = statusMap[item.id];
+      else st = fileStatus(item);
+      if (!item.ongoing && allStepsDone(item) && st === "now") return "done";
+      return st;
     }
 
     function saveLocal() {
@@ -685,11 +694,17 @@
           if (!step) return;
           if (connected()) {
             step.done = !step.done;
+            if (it && !it.ongoing && allStepsDone(it) && it.status === "now") it.status = "done";
           } else {
             if (step.done) return;
             if (!stepMap[id]) stepMap[id] = {};
             if (stepMap[id][sid]) delete stepMap[id][sid];
             else stepMap[id][sid] = true;
+            if (it && !it.ongoing && allStepsDone(it)) {
+              doneMap[id] = true;
+              statusMap[id] = "done";
+              saveLocal();
+            }
           }
           dirty = true;
           persist("Tick step");
