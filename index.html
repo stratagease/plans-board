@@ -47,6 +47,10 @@
       cursor: pointer;
       font: inherit;
     }
+    header button.team.on {
+      background: var(--green);
+      border-color: var(--green);
+    }
     @media (max-width: 640px) {
       header .row { flex-direction: column; }
       header .hdr-actions { align-self: flex-start; }
@@ -282,6 +286,19 @@
     .save-msg { font-size: 12px; color: var(--grey); margin: 0 0 12px; }
     .save-msg.err { color: #a33; }
     .save-msg.ok { color: var(--green); }
+    .live {
+      font-size: 14px;
+      padding: 12px 16px;
+      margin: 0 0 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      line-height: 1.4;
+    }
+    .live.on { background: #e7f6e8; border-color: #cfe9d1; color: #2d7a32; }
+    .live.off { background: #f4efe6; border-color: #e6d9b8; color: #8a6a2f; }
+    .live small { display: block; margin-top: 4px; font-size: 13px; opacity: 0.9; }
     .card.hour {
       border-color: var(--green);
       box-shadow: 0 0 0 1px var(--green);
@@ -296,12 +313,13 @@
         <p id="sub">Executive list — Straly first, then Saivor, then the rest.</p>
       </div>
       <div class="hdr-actions">
-        <button type="button" class="team" id="team-btn">Team</button>
+        <button type="button" class="team" id="team-btn">Connect</button>
         <a class="back" id="back" href="#" hidden>Back to Plans</a>
       </div>
     </div>
   </header>
   <div class="wrap">
+    <div class="live off" id="live"></div>
     <div class="banner" id="banner"></div>
     <div class="share-panel" id="share-panel" hidden></div>
     <p class="save-msg" id="save-msg" hidden></p>
@@ -328,6 +346,8 @@
     let plansSha = "";
     let notesSha = "";
     let saving = false;
+    let lastSave = null;
+    let githubLogin = "";
     let loadedAt = Date.now();
     const HALF_HOUR = 30 * 60 * 1000;
 
@@ -760,6 +780,89 @@
       };
     }
 
+    function nameFromLogin(login) {
+      const map = {
+        marketingstrategyapp: "Raewyn",
+        amitne7: "Amit",
+        aryannn7: "Aryan",
+      };
+      return map[String(login || "").toLowerCase()] || login || "";
+    }
+
+    function nameFromCommit(commit) {
+      const msg = String((commit && commit.commit && commit.commit.message) || "").split("\n")[0];
+      const known = peopleList();
+      const prefix = msg.split(":")[0].trim();
+      if (known.indexOf(prefix) !== -1) return prefix;
+      const login = commit && commit.author && commit.author.login;
+      return nameFromLogin(login) || prefix || "Someone";
+    }
+
+    function relTime(d) {
+      if (!d) return "";
+      const ms = Date.now() - d.getTime();
+      const m = Math.round(ms / 60000);
+      if (m < 1) return "just now";
+      if (m === 1) return "1 minute ago";
+      if (m < 60) return m + " minutes ago";
+      const h = Math.round(m / 60);
+      if (h === 1) return "1 hour ago";
+      if (h < 48) return h + " hours ago";
+      const days = Math.round(h / 24);
+      return days === 1 ? "yesterday" : days + " days ago";
+    }
+
+    function drawLive() {
+      const el = document.getElementById("live");
+      const btn = document.getElementById("team-btn");
+      if (connected()) {
+        el.className = "live on";
+        const who = person || nameFromLogin(githubLogin) || "you";
+        let line = "You are connected as " + who + ". Ticks and changes go to everyone.";
+        if (lastSave && lastSave.when) {
+          const mine = lastSave.who && person && lastSave.who === person;
+          line += " Last change: " + (mine ? "you" : lastSave.who) + ", " + relTime(lastSave.when) + ".";
+        }
+        el.innerHTML = line + '<small>Tap here if you need to reconnect.</small>';
+        btn.textContent = "Connected" + (person ? " · " + person : "");
+        btn.classList.add("on");
+      } else {
+        el.className = "live off";
+        el.innerHTML = 'Not connected. Ticks stay only on this device.<small>Tap here to connect so everyone sees your updates.</small>';
+        btn.textContent = "Connect";
+        btn.classList.remove("on");
+      }
+    }
+
+    async function refreshLiveMeta() {
+      if (!connected()) {
+        lastSave = null;
+        githubLogin = "";
+        return;
+      }
+      const c = shareCfg();
+      try {
+        const me = await fetch("https://api.github.com/user", { headers: ghHeaders() });
+        if (me.ok) {
+          const u = await me.json();
+          githubLogin = u.login || "";
+        }
+      } catch (e) { /* ignore */ }
+      const res = await fetch(
+        "https://api.github.com/repos/" + c.owner + "/" + c.repo + "/commits?path=" + encodeURIComponent(c.file) + "&per_page=5",
+        { headers: ghHeaders() }
+      );
+      if (!res.ok) return;
+      const commits = await res.json();
+      if (!commits || !commits.length) return;
+      const first = commits[0];
+      lastSave = {
+        who: nameFromCommit(first),
+        when: new Date(first.commit.author.date),
+        reason: String(first.commit.message || "").split("\n")[0],
+      };
+    }
+
     function ghUrl(path) {
       const c = shareCfg();
       return "https://api.github.com/repos/" + c.owner + "/" + c.repo + "/contents/" + path + "?ref=" + encodeURIComponent(c.branch);
@@ -786,6 +889,7 @@
         window.PLAN_NOTES = parseNotesFile(b64decode(notes.content));
       } catch (e) { /* notes optional */ }
       loadedAt = Date.now();
+      await refreshLiveMeta();
     }
 
     async function saveToGithub(reason) {
@@ -822,7 +926,10 @@
       saving = true;
       say("Saving…");
       saveToGithub(reason).then(function () {
-        say("Saved for the team.", "ok");
+        lastSave = { who: person || nameFromLogin(githubLogin) || "you", when: new Date(), reason: reason };
+        say("Saved for everyone.", "ok");
+        drawLive();
+        return refreshLiveMeta().then(drawLive);
       }).catch(function (err) {
         say(String(err.message || err), "err");
       }).then(function () {
@@ -853,29 +960,41 @@
       panel.hidden = false;
       const c = shareCfg();
       const repo = "https://github.com/" + c.owner + "/" + c.repo;
-      panel.innerHTML =
-        "<p>First time: make a GitHub token, paste it, Connect. After that, just open this page.</p>" +
-        "<ol>" +
-          "<li>Open <a href=\"https://github.com/settings/personal-access-tokens/new\" target=\"_blank\" rel=\"noopener\">this GitHub page</a> (sign in if it asks).</li>" +
-          "<li>Token name: <strong>Plans</strong></li>" +
-          "<li>Resource owner: <strong>stratagease</strong></li>" +
-          "<li>Repository access: only <strong>plans</strong> (the private one)</li>" +
-          "<li>Permissions → Contents → <strong>Read and write</strong></li>" +
-          "<li>Generate, copy, paste below. If GitHub asks to authorise stratagease, click Authorise.</li>" +
-        "</ol>" +
-        '<input id="token-input" type="password" autocomplete="off" placeholder="Paste the token here" value="' + esc(token()) + '">' +
-        '<div class="share-row">' +
-          '<button type="button" id="connect-btn">' + (connected() ? "Reconnect" : "Connect") + "</button>" +
-          (connected() ? '<button type="button" id="disconnect-btn">Disconnect this browser</button>' : "") +
-          "<span>" + (connected() ? "Connected. Ticks save for everyone." : "Not connected yet.") + "</span>" +
-        "</div>";
-      document.getElementById("connect-btn").onclick = function () {
+      if (connected()) {
+        const who = person || nameFromLogin(githubLogin) || "you";
+        const last = lastSave && lastSave.when
+          ? " Last change on the shared board: " + lastSave.who + ", " + relTime(lastSave.when) + "."
+          : "";
+        panel.innerHTML =
+          "<p>You are connected as <strong>" + esc(who) + "</strong>. Your ticks go to Amit, Aryan, and Raewyn." + last + "</p>" +
+          '<div class="share-row">' +
+            '<button type="button" id="disconnect-btn">Disconnect this browser</button>' +
+            "<span>Leave this on. Disconnect only if you meant to work alone.</span>" +
+          "</div>";
+      } else {
+        panel.innerHTML =
+          "<p>Connect so everyone sees your ticks. Classic GitHub token is fine.</p>" +
+          "<ol>" +
+            "<li>Open <a href=\"https://github.com/settings/tokens/new\" target=\"_blank\" rel=\"noopener\">this GitHub page</a> (sign in if it asks).</li>" +
+            "<li>Note: <strong>Plans</strong>. Expiration: 90 days.</li>" +
+            "<li>Tick <strong>only</strong> the first box: <strong>repo</strong>.</li>" +
+            "<li>Generate token, copy it, paste below. If GitHub asks to authorise stratagease, click Authorise.</li>" +
+          "</ol>" +
+          '<input id="token-input" type="password" autocomplete="off" placeholder="Paste the token here" value="' + esc(token()) + '">' +
+          '<div class="share-row">' +
+            '<button type="button" id="connect-btn">Connect</button>' +
+            "<span>Not connected yet.</span>" +
+          "</div>";
+      }
+      const on = document.getElementById("connect-btn");
+      if (on) on.onclick = function () {
         const v = (document.getElementById("token-input").value || "").trim();
         if (!v) { say("Paste a token first.", "err"); return; }
         localStorage.setItem(TOKEN_KEY, v);
-        say("Loading the team board…");
+        say("Loading the shared board…");
         loadFromGithub().then(function () {
-          say("Connected. This is the shared board.", "ok");
+          say("You are connected. Ticks go to everyone.", "ok");
+          shareOpen = false;
           draw();
         }).catch(function (err) {
           say(String(err.message || err), "err");
@@ -886,7 +1005,9 @@
       if (off) off.onclick = function () {
         localStorage.removeItem(TOKEN_KEY);
         plansSha = "";
-        say("This browser is local-only again.");
+        lastSave = null;
+        githubLogin = "";
+        say("This browser is no longer connected.");
         draw();
       };
     }
@@ -897,6 +1018,7 @@
       const hourId = (d.freshAirThisWeek && d.freshAirThisWeek.id) || "";
       const item = nid ? d.items.find(function (i) { return i.id === nid; }) : null;
       drawPeople();
+      drawLive();
       drawShare();
       if (nid) drawNotes(d, item, hourId);
       else drawList(d, hourId);
@@ -944,14 +1066,11 @@
       document.getElementById("people").hidden = false;
       const hourItem = d.items.find(function (i) { return i.id === hourId; });
       const banner = document.getElementById("banner");
-      const teamLine = connected()
-        ? " Shared with Amit and Aryan. Click a name on a card or step to assign it."
-        : " Click Team to share ticks with Amit and Aryan. Until then, ticks stay on this device.";
       banner.innerHTML = hourItem
-        ? "This week's hour: <strong>" + esc(hourItem.project) + "</strong>. When the timer ends, write the next action on that card and stop. Everything else stays parked — not in your head." + teamLine
-        : ((d.freshAirThisWeek && d.freshAirThisWeek.note
+        ? "This week's hour: <strong>" + esc(hourItem.project) + "</strong>. When the timer ends, write the next action on that card and stop. Everything else stays parked — not in your head."
+        : (d.freshAirThisWeek && d.freshAirThisWeek.note
             ? esc(d.freshAirThisWeek.note)
-            : "Pick one side project for a one-hour break. Tell Grok which, so it is on this banner.") + teamLine);
+            : "Pick one side project for a one-hour break. Tell Grok which, so it is on this banner.");
 
       [].forEach.call(filtersEl.children, function (b) {
         b.classList.toggle("on", b.dataset.id === filter);
@@ -1040,6 +1159,10 @@
     };
     document.getElementById("team-btn").onclick = function () {
       shareOpen = !shareOpen;
+      draw();
+    };
+    document.getElementById("live").onclick = function () {
+      shareOpen = true;
       draw();
     };
 
