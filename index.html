@@ -346,6 +346,8 @@
     let plansSha = "";
     let notesSha = "";
     let saving = false;
+    let saveQueued = "";
+    let dirty = false;
     let lastSave = null;
     let githubLogin = "";
     let loadedAt = Date.now();
@@ -604,6 +606,7 @@
         btn.onclick = function () {
           const id = btn.getAttribute("data-toggle");
           toggleDone(id);
+          dirty = true;
           persist("Mark done");
           draw();
         };
@@ -623,6 +626,7 @@
             if (stepMap[id][sid]) delete stepMap[id][sid];
             else stepMap[id][sid] = true;
           }
+          dirty = true;
           persist("Tick step");
           draw();
         };
@@ -640,24 +644,32 @@
             const step = (it.steps || []).find(function (s) { return s.id === sid; });
             if (!step) return;
             const next = stepWho(it, step) === name ? "" : name;
-            if (connected()) {
-              if (next) step.who = next;
-              else delete step.who;
-            } else {
+            if (next) step.who = next;
+            else delete step.who;
+            if (!connected()) {
               const k = id + ":" + sid;
               if (next) assignMap[k] = next;
               else delete assignMap[k];
             }
           } else {
             const next = itemAssignee(it) === name ? "" : name;
-            if (connected()) {
-              if (next) it.assignee = next;
-              else delete it.assignee;
-            } else {
+            if (next) it.assignee = next;
+            else delete it.assignee;
+            (it.steps || []).forEach(function (s) {
+              if (next) s.who = next;
+              else delete s.who;
+            });
+            if (!connected()) {
               if (next) assignMap[id] = next;
               else delete assignMap[id];
+              (it.steps || []).forEach(function (s) {
+                const k = id + ":" + s.id;
+                if (next) assignMap[k] = next;
+                else delete assignMap[k];
+              });
             }
           }
+          dirty = true;
           persist("Assign");
           draw();
         };
@@ -906,8 +918,25 @@
         }),
       });
       if (res.status === 409) {
-        await loadFromGithub();
-        throw new Error("Someone else just saved. The board reloaded — tap again.");
+        const latest = await githubGet(c.file);
+        plansSha = latest.sha;
+        const retry = await fetch("https://api.github.com/repos/" + c.owner + "/" + c.repo + "/contents/" + c.file, {
+          method: "PUT",
+          headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+          body: JSON.stringify({
+            message: (person || "Plans") + ": " + (reason || "update"),
+            content: b64encode(body),
+            sha: plansSha,
+            branch: c.branch,
+          }),
+        });
+        if (!retry.ok) {
+          const t = await retry.text();
+          throw new Error("Could not save the name change. Tap the name once more.");
+        }
+        const json409 = await retry.json();
+        plansSha = json409.content && json409.content.sha ? json409.content.sha : plansSha;
+        return;
       }
       if (!res.ok) {
         const t = await res.text();
@@ -920,12 +949,17 @@
     function persist(reason) {
       if (!connected()) {
         saveLocal();
+        dirty = false;
         return;
       }
-      if (saving) return;
+      if (saving) {
+        saveQueued = reason || saveQueued || "update";
+        return;
+      }
       saving = true;
       say("Saving…");
       saveToGithub(reason).then(function () {
+        dirty = false;
         lastSave = { who: person || nameFromLogin(githubLogin) || "you", when: new Date(), reason: reason };
         say("Saved for everyone.", "ok");
         drawLive();
@@ -934,6 +968,11 @@
         say(String(err.message || err), "err");
       }).then(function () {
         saving = false;
+        if (saveQueued) {
+          const queued = saveQueued;
+          saveQueued = "";
+          persist(queued);
+        }
       });
     }
 
@@ -1141,7 +1180,7 @@
 
     function maybeReload() {
       if (connected()) {
-        if (saving) return;
+        if (saving || dirty) return;
         loadFromGithub().then(function () { draw(); }).catch(function () {});
         return;
       }
