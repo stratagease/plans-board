@@ -199,6 +199,7 @@
       border-color: var(--navy);
     }
     .next { margin: 8px 0 0; color: var(--navy); }
+    .card .next a, .card .who a, .team-notes a { color: #2c4a9a; }
     .who { margin: 6px 0 0; font-size: 13px; color: var(--grey); }
     .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
     .actions button, .actions a {
@@ -650,7 +651,7 @@
       const newest = notes.slice(-8).reverse();
       const list = newest.length
         ? newest.map(function (n) {
-            return '<div class="tn"><strong>' + esc(n.who) + "</strong><span>" + esc(noteWhen(n.at)) + "</span><p>" + esc(n.text) + "</p></div>";
+            return '<div class="tn"><strong>' + esc(n.who) + "</strong><span>" + esc(noteWhen(n.at)) + "</span><p>" + inlineMd(n.text || "").replace(/\n/g, "<br>") + "</p></div>";
           }).join("")
         : '<p class="tn-empty">Nothing here yet. Add a line the others and Grok can read.</p>';
       return '<div class="team-notes">' +
@@ -1224,7 +1225,7 @@
       const text = notesText(item);
       const body = text
         ? mdToHtml(text)
-        : "<p>" + esc(item.next || "No product plan file on this card.") + "</p>";
+        : "<p>" + inlineMd(item.next || "No product plan file on this card.") + "</p>";
       list.innerHTML =
         '<article class="card ' + (st === "done" ? "done " : "") + (hour ? "hour" : "") + '">' +
           '<div class="top"><div class="title">' + esc(item.title) + '</div>' +
@@ -1281,8 +1282,8 @@
             '<span class="pill ' + st + '">' + (hour ? "hour" : st) + "</span>" +
           "</div>" +
           '<div class="meta">' + esc(item.project) + " · " + esc(item.when || "") + "</div>" +
-          (item.next && !(item.steps && item.steps.length) ? '<p class="next">' + esc(item.next) + "</p>" : "") +
-          (item.next && item.steps && item.steps.length ? '<p class="who">' + esc(item.next) + "</p>" : "") +
+          (item.next && !(item.steps && item.steps.length) ? '<p class="next">' + inlineMd(item.next) + "</p>" : "") +
+          (item.next && item.steps && item.steps.length ? '<p class="who">' + inlineMd(item.next) + "</p>" : "") +
           teamNotesHtml(item) +
           progressHtml(item) +
           stepsHtml(item) +
